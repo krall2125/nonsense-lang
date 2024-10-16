@@ -11,7 +11,6 @@ int64_t *allocstack[256] = {NULL};
 int64_t memsize[256] = {0};
 
 int32_t tapepos = 0, top = 0, alloctop = 0;
-// TODO: TEST MEM ALLOC AND IMPLEMENT FILE IO
 typedef enum {
 	OP_INCITER, // >
 	OP_DECITER, // <
@@ -750,7 +749,25 @@ void run(BytecodeList *bytecode) {
 				break;
 			}
 			case OP_OPENF: {
-				// TODO: IMPLEMENT FILE IO
+				if (!contains((int64_t *) tape[tapepos])) {
+					fprintf(stderr, "Invalid memory address of filename string.\n");
+					return;
+				}
+
+				int64_t memsize_s = memsize[indexof((int64_t *) tape[tapepos])];
+				char *str = malloc((memsize_s + 1) * sizeof(char));
+
+				int64_t *intstr = (int64_t *) tape[tapepos];
+
+				for (int i = 0; i < memsize_s; i++) {
+					str[i] = (char) intstr[i];
+				}
+
+				str[memsize_s] = '\0';
+
+				stack[top++] = open(str, O_RDWR | O_CREAT, 0777);
+
+				break;
 			}
 			case OP_LOOPS: continue;
 			case OP_WHILE: continue;
