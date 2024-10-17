@@ -766,6 +766,35 @@ void run(BytecodeList *bytecode) {
 				str[memsize_s] = '\0';
 
 				stack[top++] = open(str, O_RDWR | O_CREAT, 0777);
+				free(str);
+
+				break;
+			}
+			case OP_READF: {
+				long len = lseek(tape[tapepos], 0, SEEK_END);
+				lseek(tape[tapepos], 0, SEEK_SET);
+
+				int64_t *intstr = malloc(sizeof(int64_t) * (len + 1));
+
+				char *str = malloc(sizeof(char) * (len + 1));
+
+				read(tape[tapepos], str, len);
+				str[len] = '\0';
+
+				for (int i = 0; i < len; i++) {
+					intstr[i] = (int64_t) str[i];
+				}
+
+				lseek(tape[tapepos], 0, SEEK_SET);
+
+				intstr[len] = 0;
+
+				free(str);
+
+				allocstack[alloctop] = intstr;
+				memsize[alloctop] = len;
+
+				stack[top++] = (int64_t) intstr;
 
 				break;
 			}
