@@ -82,6 +82,7 @@ pub fn compile(allocator: std.mem.Allocator, opps: []bytecode.BytecodeOp, filena
 				try writer.print("\tpop rax\n", .{});
 			},
 			.OP_PUTN => {
+				std.debug.print("Warning! putn operation is not implemented for compilation.", .{});
 			},
 			.OP_JUMP_IF_FALSE => {
 				try writer.print("\tpop rax\n", .{});

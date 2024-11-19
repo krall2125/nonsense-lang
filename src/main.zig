@@ -5,7 +5,7 @@ const interpreter = @import("interpreter.zig");
 const compiler = @import("compiler.zig");
 
 pub fn main() !void {
-	// init gpat
+	// init gpa
 	var gpa = std.heap.GeneralPurposeAllocator(.{.safety = true}){};
 
 	var debug_dump_tokens = false;
