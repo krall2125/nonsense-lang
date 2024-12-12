@@ -1,7 +1,7 @@
 const std = @import("std");
 
 pub const TokenType = enum {
-	TOK_COLON,	 // :
+	// TOK_COLON,	 // :
 	TOK_PLUS,	 // +
 	TOK_MINUS,	 // -
 	TOK_STAR,	 // *
@@ -85,13 +85,13 @@ fn word_token(allocator: std.mem.Allocator, text: []u8, iter: *usize) !Token {
 		try token.lexeme.append(text[iter.*]);
 	}
 
-	if (std.mem.eql(u8, token.lexeme.items, "putc")) {
-		token.typ = .TOK_PUTC;
-	}
-	else if (std.mem.eql(u8, token.lexeme.items, "putn")) {
-		token.typ = .TOK_PUTN;
-	}
-	else if (std.mem.eql(u8, token.lexeme.items, "end")) {
+	// if (std.mem.eql(u8, token.lexeme.items, "putc")) {
+	// 	token.typ = .TOK_PUTC;
+	// }
+	// else if (std.mem.eql(u8, token.lexeme.items, "putn")) {
+	// 	token.typ = .TOK_PUTN;
+	// }
+	if (std.mem.eql(u8, token.lexeme.items, "end")) {
 		token.typ = .TOK_END;
 	}
 	else if (std.mem.eql(u8, token.lexeme.items, "while")) {
@@ -148,16 +148,19 @@ fn word_token(allocator: std.mem.Allocator, text: []u8, iter: *usize) !Token {
 	else if (std.mem.eql(u8, token.lexeme.items, "print")) {
 		token.typ = .TOK_PRINT;
 	}
-	else if (std.mem.eql(u8, token.lexeme.items, "swap")) {
-		token.typ = .TOK_SWAP;
+	else if (std.mem.eql(u8, token.lexeme.items, "var")) {
+		token.typ = .TOK_VAR;
 	}
+	// else if (std.mem.eql(u8, token.lexeme.items, "swap")) {
+	// 	token.typ = .TOK_SWAP;
+	// }
 
 	return token;
 }
 
 fn read_token(allocator: std.mem.Allocator, text: []u8, iter: *usize) !Token {
 	switch (text[iter.*]) {
-		':' => return make_token(allocator, .TOK_COLON),
+		// ':' => return make_token(allocator, .TOK_COLON),
 		'+' => return make_token(allocator, .TOK_PLUS),
 		'-' => return make_token(allocator, .TOK_MINUS),
 		'*' => return make_token(allocator, .TOK_STAR),
@@ -165,6 +168,8 @@ fn read_token(allocator: std.mem.Allocator, text: []u8, iter: *usize) !Token {
 		'%' => return make_token(allocator, .TOK_PERCENT),
 		'=' => return make_token(allocator, .TOK_EQUAL),
 		'~' => return make_token(allocator, .TOK_TILDE),
+		'>' => return make_token(allocator, .TOK_GREATER),
+		'<' => return make_token(allocator, .TOK_LESS),
 		'"' => return string_token(allocator, text, iter),
 		else => {
 			if (std.ascii.isDigit(text[iter.*])) {
