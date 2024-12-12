@@ -7,16 +7,16 @@ pub const TokenType = enum {
 	TOK_STAR,	 // *
 	TOK_SLASH,	 // /
 	TOK_PERCENT,	 // %
-	TOK_PUTC,	 // putc
-	TOK_PUTN,	 // putn
+	// TOK_PUTC,	 // putc
+	// TOK_PUTN,	 // putn
 	TOK_END,	 // end
 	TOK_WHILE,	 // while
 	TOK_DEBUG,	 // debug
-	TOK_POP,
+	// TOK_POP,
 	TOK_EQUAL,	 // =
 	TOK_TILDE,	 // ~
-	TOK_GREATER,	 // gt
-	TOK_LESS,	 // lt
+	TOK_GREATER,	 // gt, >
+	TOK_LESS,	 // lt, <
 	TOK_MEM,	 // mem
 	TOK_MEMW,	 // memw
 	TOK_MEMR,	 // memr
@@ -24,6 +24,7 @@ pub const TokenType = enum {
 	TOK_CLOSEF,	 // closef
 	TOK_READF,	 // readf
 	TOK_WRITEF,	 // writef
+	TOK_VAR,         // var
 
 	TOK_PRINTLN,	 // println
 	TOK_PRINT,	 // print
@@ -32,7 +33,7 @@ pub const TokenType = enum {
 	TOK_IF,
 	TOK_ELSE,
 	TOK_DO,
-	TOK_SWAP,
+	// TOK_SWAP,
 	
 	TOK_STRING,	 // any text with quotes around it
 	TOK_INT,	 // any integer
