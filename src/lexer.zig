@@ -7,6 +7,8 @@ pub const TokenType = enum {
 	TOK_STAR,	 // *
 	TOK_SLASH,	 // /
 	TOK_PERCENT,	 // %
+	TOK_LPAR,        // (
+	TOK_RPAR,        // )
 	// TOK_PUTC,	 // putc
 	// TOK_PUTN,	 // putn
 	TOK_END,	 // end
@@ -170,6 +172,8 @@ fn read_token(allocator: std.mem.Allocator, text: []u8, iter: *usize) !Token {
 		'~' => return make_token(allocator, .TOK_TILDE),
 		'>' => return make_token(allocator, .TOK_GREATER),
 		'<' => return make_token(allocator, .TOK_LESS),
+		'(' => return make_token(allocator, .TOK_LPAR),
+		')' => return make_token(allocator, .TOK_RPAR),
 		'"' => return string_token(allocator, text, iter),
 		else => {
 			if (std.ascii.isDigit(text[iter.*])) {

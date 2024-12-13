@@ -37,24 +37,68 @@ pub const OpType = enum {
 
 pub const BytecodeOp = struct {
 	typ: OpType,
-	params: std.ArrayList(u64)
+	params: []u64
 };
 
-fn make_op(allocator: std.mem.Allocator, typ: OpType, params: []u64) !BytecodeOp {
-	var op = BytecodeOp {
+fn make_op(typ: OpType, params: []u64) !BytecodeOp {
+	return BytecodeOp {
 		.typ = typ,
-		.params = std.ArrayList(u64).init(allocator)
+		.params = params
 	};
-
-	try op.params.appendSlice(params);
-
-	return op;
 }
+
+pub const ParseError = error {
+	UnexpectedToken,
+};
+
+const CompilerState = struct {
+	opps: *std.ArrayList(BytecodeOp),
+	positions: *std.ArrayList(usize),
+	tokens: []lexer.Token,
+	iter: usize,
+
+	pub fn err(self: *CompilerState, format: []const u8, comptime args: anytype) void {
+		std.debug.print("Error at token ({s} '{s}')\n", .{@tagName(self.tokens[self.iter]), self.tokens[self.iter].lexeme});
+		std.debug.print(format, args);
+	}
+
+	pub fn consume(self: *CompilerState, t: lexer.TokenType) !void {
+		if (self.tokens[self.iter].typ != t) {
+			err("Unexpected token {s}", .{@tagName(self.tokens[self.iter].typ)});
+			return ParseError.UnexpectedToken;
+		}
+
+		self.iter += 1;
+	}
+
+	pub fn match(self: *CompilerState, t: lexer.TokenType) !void {
+	}
+
+	pub fn expression(self: *CompilerState) void {
+	}
+
+	pub fn number(self: *CompilerState) !void {
+		const val = std.fmt.parseInt(u64, self.tokens[self.iter - 1].lexeme, 10) catch 0;
+
+		try self.opps.append(make_op(.OP_PUSH, &[_]u64{val}));
+	}
+
+	pub fn grouping(self: *CompilerState) !void {
+		self.expression();
+
+	}
+};
 
 pub fn compile(allocator: std.mem.Allocator, tokens: []lexer.Token) !std.ArrayList(BytecodeOp) {
 	var opps = std.ArrayList(BytecodeOp).init(allocator);
 
 	var positions = std.ArrayList(usize).init(allocator);
+
+	var compiler = CompilerState {
+		.opps = &opps,
+		.positions = &positions,
+		.tokens = tokens
+	};
 
 	for (tokens) |token| {
 		switch (token.typ) {
