@@ -19,28 +19,28 @@ pub const ParseError = error {
 	UnableToAddInstr,
 };
 
-const CompilerState = struct {
+pub const CompilerState = struct {
 	opps: *std.ArrayList(bytecode.BytecodeOp),
 	tokens: []lexer.Token,
 	iter: usize,
 
-	pub fn add_op(self: *CompilerState, op_t: bytecode.OpType, arg: u64) ParseRule!void {
+	pub fn add_op(self: *CompilerState, op_t: bytecode.OpType, arg: u64) !void {
 		self.opps.append(bytecode.BytecodeOp {
 			.typ = op_t,
-			.params = [_]u64{arg}
+			.param = arg
 		}) catch {
 			return ParseError.UnableToAddInstr;
 		};
 	}
 
-	pub fn err(self: *CompilerState, format: []const u8, comptime args: anytype) void {
-		std.debug.print("Error at token ({s} '{s}')\n", .{@tagName(self.tokens[self.iter]), self.tokens[self.iter].lexeme});
+	pub fn err(self: *CompilerState, comptime format: []const u8, args: anytype) void {
+		std.debug.print("Error at token ({s} '{s}')\n", .{@tagName(self.tokens[self.iter].typ), self.tokens[self.iter].lexeme.items});
 		std.debug.print(format, args);
 	}
 
 	pub fn consume(self: *CompilerState, t: lexer.TokenType) !void {
 		if (self.tokens[self.iter].typ != t) {
-			err("Unexpected token {s}", .{@tagName(self.tokens[self.iter].typ)});
+			self.err("Unexpected token {s}\n", .{@tagName(self.tokens[self.iter].typ)});
 			return ParseError.UnexpectedToken;
 		}
 
@@ -52,7 +52,7 @@ const CompilerState = struct {
 	}
 
 	pub fn number(self: *CompilerState) !void {
-		const val = std.fmt.parseInt(u64, self.tokens[self.iter - 1].lexeme, 10) catch 0;
+		const val = std.fmt.parseInt(u64, self.tokens[self.iter - 1].lexeme.items, 10) catch 0;
 
 		try self.add_op(.OP_PUSH, val);
 	}
@@ -102,7 +102,7 @@ const CompilerState = struct {
 			return;
 		}
 
-		try prefix_rule(self);
+		prefix_rule.?(self) catch {};
 
 		const numeric_prec = @intFromEnum(prec);
 
@@ -111,7 +111,7 @@ const CompilerState = struct {
 
 			const infix_rule = get_rule(self.tokens[self.iter - 1].typ).infix;
 
-			infix_rule(self);
+			infix_rule.?(self) catch {};
 		}
 	}
 
@@ -128,47 +128,47 @@ fn make_op(typ: bytecode.OpType, params: []u64) bytecode.BytecodeOp {
 }
 
 const ParseRule = struct {
-	prefix: *const fn (*CompilerState) ParseError!void,
-	infix: *const fn (*CompilerState) ParseError!void,
+	prefix: ?*const fn (*CompilerState) ParseError!void,
+	infix: ?*const fn (*CompilerState) ParseError!void,
 	prec: Precedence
 };
 
 fn get_rule(t: lexer.TokenType) *ParseRule {
-	return &rules[@intFromEnum(t)];
+	return @constCast(&rules[@intFromEnum(t)]);
 }
 
 const rules = [_]ParseRule {
-	ParseRule { null, CompilerState.binary, Precedence.TERM },
-	ParseRule { null, CompilerState.binary, Precedence.TERM },
-	ParseRule { null, CompilerState.binary, Precedence.FACTOR },
-	ParseRule { null, CompilerState.binary, Precedence.FACTOR },
-	ParseRule { null, CompilerState.binary, Precedence.FACTOR },
-	ParseRule { CompilerState.grouping, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, CompilerState.binary, Precedence.EQUALITY },
-	ParseRule { CompilerState.unary, null, Precedence.UNARY },
-	ParseRule { null, CompilerState.binary, Precedence.COMPARISON },
-	ParseRule { null, CompilerState.binary, Precedence.COMPARISON },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE }, // string
-	ParseRule { CompilerState.number, null, Precedence.NONE },
-	ParseRule { null, null, Precedence.NONE }, // identifier
-	ParseRule { null, null, Precedence.NONE }, // none
-	ParseRule { null, null, Precedence.NONE }, // eof
+	ParseRule { .prefix = null, .infix = CompilerState.binary, .prec = Precedence.TERM },
+	ParseRule { .prefix = null, .infix = CompilerState.binary, .prec = Precedence.TERM },
+	ParseRule { .prefix = null, .infix = CompilerState.binary, .prec = Precedence.FACTOR },
+	ParseRule { .prefix = null, .infix = CompilerState.binary, .prec = Precedence.FACTOR },
+	ParseRule { .prefix = null, .infix = CompilerState.binary, .prec = Precedence.FACTOR },
+	ParseRule { .prefix = CompilerState.grouping, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = CompilerState.binary, .prec = Precedence.EQUALITY },
+	ParseRule { .prefix = CompilerState.unary, .infix = null, .prec = Precedence.UNARY },
+	ParseRule { .prefix = null, .infix = CompilerState.binary, .prec = Precedence.COMPARISON },
+	ParseRule { .prefix = null, .infix = CompilerState.binary, .prec = Precedence.COMPARISON },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE }, // string
+	ParseRule { .prefix = CompilerState.number, .infix = null, .prec = Precedence.NONE },
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE }, // identifier
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE }, // none
+	ParseRule { .prefix = null, .infix = null, .prec = Precedence.NONE }, // eof
 };

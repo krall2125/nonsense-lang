@@ -145,9 +145,9 @@ fn word_token(allocator: std.mem.Allocator, text: []u8, iter: *usize) !Token {
 	else if (std.mem.eql(u8, token.lexeme.items, "do")) {
 		token.typ = .TOK_DO;
 	}
-	else if (std.mem.eql(u8, token.lexeme.items, "pop")) {
-		token.typ = .TOK_POP;
-	}
+	// else if (std.mem.eql(u8, token.lexeme.items, "pop")) {
+	// 	token.typ = .TOK_POP;
+	// }
 	else if (std.mem.eql(u8, token.lexeme.items, "print")) {
 		token.typ = .TOK_PRINT;
 	}

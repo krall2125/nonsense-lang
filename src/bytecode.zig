@@ -37,7 +37,7 @@ pub const OpType = enum {
 
 pub const BytecodeOp = struct {
 	typ: OpType,
-	params: []u64
+	param: u64
 };
 
 pub fn compile(allocator: std.mem.Allocator, tokens: []lexer.Token) !std.ArrayList(BytecodeOp) {
@@ -45,8 +45,11 @@ pub fn compile(allocator: std.mem.Allocator, tokens: []lexer.Token) !std.ArrayLi
 
 	var compiler = parser.CompilerState {
 		.opps = &opps,
-		.tokens = tokens
+		.tokens = tokens,
+		.iter = 0,
 	};
+
+	compiler.expression();
 
 	return opps;
 }
