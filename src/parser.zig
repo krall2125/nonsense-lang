@@ -170,4 +170,5 @@ const rules = [_]ParseRule {
 	ParseRule { CompilerState.number, null, Precedence.NONE },
 	ParseRule { null, null, Precedence.NONE }, // identifier
 	ParseRule { null, null, Precedence.NONE }, // none
+	ParseRule { null, null, Precedence.NONE }, // eof
 };

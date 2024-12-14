@@ -41,7 +41,8 @@ pub const TokenType = enum {
 	TOK_INT,	 // any integer
 	TOK_IDENTIFIER,  // any identifier
 	
-	TOK_NONE
+	TOK_NONE,
+	TOK_EOF,
 };
 
 pub const Token = struct {
@@ -222,6 +223,8 @@ pub fn lex(allocator: std.mem.Allocator, filename: []u8) !std.ArrayList(Token) {
 
 		try tokens.append(token);
 	}
+
+	try tokens.append(make_token(allocator, .TOK_EOF));
 
 	// free buffer
 	allocator.free(buffer);
